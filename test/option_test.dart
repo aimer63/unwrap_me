@@ -1,4 +1,6 @@
 import 'package:test/test.dart';
+import 'package:unwrap_me/src/functions.dart';
+import 'package:unwrap_me/src/option.dart';
 import 'package:unwrap_me/unwrap_me.dart';
 
 class Point {
@@ -35,7 +37,7 @@ void main() {
       expect(opt.unwrap(), ());
     });
 
-    test('Infer Some<Unit> type', () {
+    test('Infer Unit type', () {
       Option<()> fn() {
         return const Some(());
       }
@@ -61,76 +63,79 @@ void main() {
       // FIXME: Understand why.
       expect(o, o1);
     });
-    test('Equatable', () {
-      expect(const Some(1) == const Some(1), isTrue);
-      expect(const Some(1).hashCode == const Some(1).hashCode, isTrue);
+    test('Equality', () {
+      expect(Some(1) == Some(1), isTrue);
+      expect(Some(1).hashCode == Some(1).hashCode, isTrue);
 
-      expect(const Some(1) == const Option.some(1), isTrue);
-      expect(const Some(1).hashCode == const Option.some(1).hashCode, isTrue);
+      expect(Some(1) == Option.some(1), isTrue);
+      expect(Some(1).hashCode == Option.some(1).hashCode, isTrue);
 
-      expect(const Some(1) == some(1), isTrue);
-      expect(const Some(1).hashCode == some(1).hashCode, isTrue);
+      expect(Some(1) == some(1), isTrue);
+      expect(Some(1).hashCode == some(1).hashCode, isTrue);
 
-      expect(const None() == const None(), isTrue);
-      expect(const None().hashCode == const None().hashCode, isTrue);
+      expect(None() == None(), isTrue);
+      expect(None().hashCode == None().hashCode, isTrue);
 
-      expect(const None() == const Option.none(), isTrue);
-      expect(const None().hashCode == const Option.none().hashCode, isTrue);
+      expect(None() == Option.none(), isTrue);
+      expect(None().hashCode == Option.none().hashCode, isTrue);
 
-      expect(const None() == none(), isTrue);
-      expect(const None().hashCode == none().hashCode, isTrue);
+      expect(None() == none(), isTrue);
+      expect(None().hashCode == none().hashCode, isTrue);
+
+      expect(None() == None<String>(), isTrue);
+      expect(None<int>() == None<String>(), isTrue);
     });
   });
 
   group('Mapping and Matching', () {
     group('Maps', () {
-      test('Map Some', () {
+      test('map Some', () {
         const o = Some(0);
         final o1 = o.map((v) => v.toString());
         expect(o1.unwrap(), '0');
       });
-      test('Map None', () {
+      test('map None', () {
         const o = None();
         final o1 = o.map((v) => v.toString());
         expect(() => o1.expect('Something'), throwsA('Something'));
       });
-      test('MapOr Some', () {
+      test('mapOr Some', () {
         const o = Some(0);
         final s = o.mapOr('defaultValue', (v) => v.toString());
         expect(s, '0');
       });
-      test('MapOr None', () {
+      test('mapOr None', () {
         const o = None();
         final s = o.mapOr('defaultValue', (v) => v.toString());
         expect(s, 'defaultValue');
       });
-      test('MapElse Some', () {
+      test('mapOrElse Some', () {
         const o = Some(0);
         final s = o.mapOrElse(() => 'default', (v) => v.toString());
         expect(s, '0');
       });
-      test('MapOrElse None', () {
+      test('mapOrElse None', () {
         const o = None();
         final s = o.mapOrElse(() => 'default', (v) => v.toString());
         expect(s, 'default');
       });
-      test('FlatMap Some', () {
+      test('flatMap Some', () {
         const o = Some(0);
         final s = o.flatMap((v) => Some(v.toString()));
         expect(s, Some('0'));
       });
-      test('FlatMap None', () {
+      test('flatMap None', () {
         const o = Option<int>.none();
         final s = o.flatMap((v) => Some(v.toString()));
         expect(s, None());
       });
-      test('Flatten Some', () {
+      test('flatten Some', () {
         expect(Some(Some(0)).flatten(), Some(0));
       });
-      test('Flatten None', () {
+      test('flatten None', () {
         expect(Some(None()).flatten(), None());
       });
-      test('Flatten Long', () {
+      test('flatten Long', () {
         expect(
           Some(Some(Some(Some(Some(Some(1)))))) //
               .flatten()
@@ -139,19 +144,24 @@ void main() {
           Some(Some(Some(1))),
         );
       });
-      test('Or', () {
+      test('or', () {
         expect(Some(0).or(Some(3)), Some(0));
         expect(None<int>().or(Some(3)), Some(3));
         expect(Some(0).or(None()), Some(0));
         expect(None<int>().or(None()), None());
       });
-      test('OrElse', () {
+      test('orElse', () {
         expect(Some(0).orElse(() => Some(3)), Some(0));
         expect(None<int>().orElse(() => Some(3)), Some(3));
         expect(Some(0).orElse(() => None()), Some(0));
         expect(None<int>().orElse(() => None()), None());
       });
-      test('And Some', () {
+      test('xor', () {
+        expect(Some(1).xor(None()), Some(1));
+        expect(None<int>().xor(Some(2)), Some(2));
+        expect(Some(1).xor(Some(2)), None());
+      });
+      test('and Some', () {
         const o = Option<int>.some(0);
         final o1 = o.and(Some("Hello"));
         expect(o1, Some("Hello"));
@@ -160,7 +170,7 @@ void main() {
         final o3 = o2.and(None());
         expect(o3, None());
       });
-      test('And None', () {
+      test('and None', () {
         const o = None();
         final o1 = o.and(Some("Hello"));
         expect(o1, None());
@@ -169,12 +179,12 @@ void main() {
         final o3 = o2.and(None());
         expect(o3, None());
       });
-      test('AndThen Some', () {
+      test('andThen Some', () {
         const o = Option<int>.some(0);
         final o1 = o.andThen((v) => Some("Hello"));
         expect(o1, Some("Hello"));
       });
-      test('AndThen None', () {
+      test('andThen None', () {
         const o = None();
         final o1 = o.andThen((v) => Some("Hello"));
         expect(o1, None());
@@ -198,9 +208,35 @@ void main() {
         expect(x.zipWith(y, Point.make), Some(Point(3.0, 2.0)));
         expect(x.zipWith(y, makePoint), Some(Point(3.0, 2.0)));
       });
+      test('unzip', () {
+        expect(Some((1, 'hi')).unzip(), (Some(1), Some('hi')));
+        expect(None<(int, String)>().unzip(), (None(), None()));
+      });
+      test('transpose', () {
+        final Result<Option<int>, String> x = Ok(Some(5));
+        final Option<Result<int, String>> y = Some(Ok(5));
+
+        expect(x, y.transpose());
+      });
+      test('inspect', () {
+        bool inspect = false;
+        final x = Some(0).inspect((n) {
+          inspect = true;
+        });
+
+        expect(inspect, true);
+        expect(x, Some(0));
+
+        inspect = false;
+        final y = None().inspect((n) {
+          inspect = true;
+        });
+        expect(inspect, false);
+        expect(y, None());
+      });
     });
     group('Matches', () {
-      test('Match Some', () {
+      test('fold Some', () {
         const o = Option<int>.some(2);
         final m = o.fold(
           (n) => n * n,
@@ -214,7 +250,7 @@ void main() {
         };
         expect(ms, 4);
       });
-      test('Match None', () {
+      test('fold None', () {
         const o = Option<int>.none();
         final m = o.fold(
           (n) => n * n,
@@ -228,6 +264,46 @@ void main() {
         };
         expect(ms, 0);
       });
+    });
+  });
+  group('Iterator', () {
+    test('iter', () {
+      final x = Some(1);
+      for (int i in x.iter()) {
+        expect(i, 1);
+      }
+
+      x.iter().forEach((n) {
+        expect(n, 1);
+      });
+
+      final y = None<int>();
+      bool something = false;
+      for (int _ in y.iter()) {
+        something = true;
+      }
+      expect(something, false);
+
+      y.iter().forEach((n) {
+        something = true;
+      });
+      expect(something, false);
+    });
+  });
+  group('Filters', () {
+    test('isSomeAnd', () {
+      expect(Some(2).isSomeAnd((x) => x > 1), true);
+      expect(Some(0).isSomeAnd((x) => x > 1), false);
+      expect(None().isSomeAnd((x) => x > 1), false);
+    });
+    test('filter', () {
+      bool isEven(int n) {
+        return n % 2 == 0;
+      }
+
+      expect(None<int>().filter(isEven), None());
+      expect(Some(3).filter(isEven), None());
+      expect(Some(4).filter(isEven), Some(4));
     });
   });
 }

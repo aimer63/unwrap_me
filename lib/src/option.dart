@@ -13,6 +13,13 @@ sealed class Option<T> {
 
   bool isNone() => !isSome();
 
+  /// Returns `true` if the option is a `Some` and the value inside of it
+  /// matches the predicate `f`.
+  bool isSomeAnd(bool Function(T t) f) => switch (this) {
+        Some(:T val) => f(val),
+        None() => false,
+      };
+
   /// Returns the value if any, throws if `None`
   T unwrap() => switch (this) {
         Some(:T val) => val,
@@ -85,12 +92,20 @@ sealed class Option<T> {
         None() => None(),
       };
 
-  /// It looks it works... but I had to replace `Never` with `T` in the generics
-  /// of `None` and, from the None implementation, return `None()` instead of
-  /// `this`.
+  /// Returns the option if it contains a value, otherwise returns `b`.
+  ///
   Option<T> or(covariant Option<T> b) => switch (this) {
         Some() => this,
         None() => b,
+      };
+
+  /// Returns `Some` if exactly one of these 'this' and `b` are `Some`,
+  /// otherwise returns `None`.
+  ///
+  Option<T> xor(covariant Option<T> b) => switch ((this, b)) {
+        (Some(), None()) => this,
+        (None(), Some()) => b,
+        _ => None(),
       };
 
   /// Same as for 'or'.
@@ -138,11 +153,43 @@ sealed class Option<T> {
   /// Zips `this` and another `Option` with function `f`.
   /// If self is `Some(s)` and other is `Some(o)`, this method returns `Some(f(s, o))`.
   /// Otherwise, None is returned.
-  Option<R> zipWith<U, R>(Option<U> other, R Function(T t, U u) f) =>
+  Option<R> zipWith<U, R>(covariant Option<U> other, R Function(T t, U u) f) =>
       switch ((this, other)) {
         (Some(val: T a), Some(val: U b)) => Some(f(a, b)),
         _ => None(),
       };
+
+  /// Returns an iterator over the possibly contained value.
+  Iterable<T> iter() sync* {
+    switch (this) {
+      case Some(:T val):
+        yield val;
+      case None():
+        return;
+    }
+  }
+
+  /// Returns `None` if the option is `None`, otherwise calls `predicate`
+  /// with the wrapped value and returns:
+  ///
+  /// - `Some(t)` if `predicate` returns `true` (where `t` is the wrapped
+  ///   value), and
+  /// - `None` if `predicate` returns `false`.
+  ///
+  Option<T> filter(bool Function(T t) predicate) => switch (this) {
+        Some(:T val) => predicate(val) ? this : None(),
+        None() => this
+      };
+
+  /// Calls a function with argument the contained value if `Some`.
+  /// Returns the original Options
+  ///
+  Option<T> inspect(void Function(T t) f) {
+    if (this case Some(:T val)) {
+      f(val);
+    }
+    return this;
+  }
 
   /// Converts from `Option<Option<T>>` to `Option<T>`. Only one level is flatten.
   /// Chain or compose to flatten more levels.
@@ -203,4 +250,28 @@ extension FlatIt<T> on Option<Option<T>> {
   /// ```
   ///
   Option<T> flatten() => flatMap(identity);
+}
+
+extension UnzipIt<A, B> on Option<(A, B)> {
+  /// Unzips an option containing a tuple of two options.
+  ///
+  /// If `this` is `Some((a, b))` this method returns `(Some(a), Some(b))`.
+  /// Otherwise, `(None, None)` is returned.
+  ///
+  (Option<A>, Option<B>) unzip() => switch (this) {
+        Some(val: (A a, B b)) => (Some(a), Some(b)),
+        None() => (None(), None()),
+      };
+}
+
+extension TransposeIt<T, E> on Option<Result<T, E>> {
+  /// Transposes an `Option` of a `Result` into a `Result` of an `Option`.
+  /// None will be mapped to `Ok(None)`. `Some(Ok(_))` and Some(Err(_)) will
+  /// be mapped to `Ok(Some(_))` and `Err(_)`.
+  ///
+  Result<Option<T>, E> transpose() => switch (this) {
+        Some(val: Ok(:T val)) => Ok(Some(val)),
+        Some(val: Err(:E err)) => Err(err),
+        None() => Ok(None()),
+      };
 }
