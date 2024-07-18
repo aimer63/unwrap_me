@@ -1,6 +1,33 @@
 import 'package:test/test.dart';
 import 'package:unwrap_me/unwrap_me.dart';
 
+class Point {
+  final double x;
+  final double y;
+  const Point(this.x, this.y);
+
+  factory Point.make(double x, double y) {
+    return Point(x, y);
+  }
+  @override
+  operator ==(Object other) => switch (other) {
+        Point(x: double otherX, y: double otherY) => x == otherX && y == otherY,
+        _ => false
+      };
+
+  @override
+  int get hashCode => Object.hash(x, y);
+
+  @override
+  String toString() {
+    return '($x, $y)';
+  }
+}
+
+Point makePoint(double x, double y) {
+  return Point(x, y);
+}
+
 void main() {
   group('Creational', () {
     test('Some<Unit>', () {
@@ -114,15 +141,15 @@ void main() {
       });
       test('Or', () {
         expect(Some(0).or(Some(3)), Some(0));
-        expect(None().or(Some(3)), Some(3));
+        expect(None<int>().or(Some(3)), Some(3));
         expect(Some(0).or(None()), Some(0));
-        expect(None().or(None()), None());
+        expect(None<int>().or(None()), None());
       });
       test('OrElse', () {
         expect(Some(0).orElse(() => Some(3)), Some(0));
-        expect(None().orElse(() => Some(3)), Some(3));
+        expect(None<int>().orElse(() => Some(3)), Some(3));
         expect(Some(0).orElse(() => None()), Some(0));
-        expect(None().orElse(() => None()), None());
+        expect(None<int>().orElse(() => None()), None());
       });
       test('And Some', () {
         const o = Option<int>.some(0);
@@ -160,11 +187,22 @@ void main() {
         expect(Some('foo').okOrElse(() => 0), Ok('foo'));
         expect(None().okOrElse(() => 0), Err(0));
       });
+      test('zip', () {
+        expect(Some(1).zip(Some('hi')), Some((1, 'hi')));
+        expect(Some(1).zip(None<int>()), None());
+      });
+      test('zipWith', () {
+        final x = Some(3.0);
+        final y = Some(2.0);
+        expect(x.zipWith(y, Point.new), Some(Point(3.0, 2.0)));
+        expect(x.zipWith(y, Point.make), Some(Point(3.0, 2.0)));
+        expect(x.zipWith(y, makePoint), Some(Point(3.0, 2.0)));
+      });
     });
     group('Matches', () {
       test('Match Some', () {
         const o = Option<int>.some(2);
-        final m = o.match(
+        final m = o.fold(
           (n) => n * n,
           () => 0,
         );
@@ -178,7 +216,7 @@ void main() {
       });
       test('Match None', () {
         const o = Option<int>.none();
-        final m = o.match(
+        final m = o.fold(
           (n) => n * n,
           () => 0,
         );

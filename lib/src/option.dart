@@ -6,7 +6,10 @@ sealed class Option<T> {
   const factory Option.some(T t) = Some<T>;
   const factory Option.none() = None<T>;
 
-  bool isSome() => switch (this) { Some() => true, None() => false };
+  bool isSome() => switch (this) {
+        Some() => true,
+        None() => false,
+      };
 
   bool isNone() => !isSome();
 
@@ -57,12 +60,6 @@ sealed class Option<T> {
 
   /// Returns a `onNone` (if `None`), or applies `onSome` to the contained value
   /// (if any).
-  U match<U>(U Function(T t) onSome, U Function() onNone) => switch (this) {
-        Some(:T val) => onSome(val),
-        None() => onNone(),
-      };
-
-  /// Same as match
   U fold<U>(U Function(T t) onSome, U Function() onNone) => switch (this) {
         Some(:T val) => onSome(val),
         None() => onNone(),
@@ -130,6 +127,23 @@ sealed class Option<T> {
         None() => Err(err()),
       };
 
+  /// Zips `this` with another `Option`.
+  /// If `this` is `Some(s)` and `other` is `Some(o)`, this method returns `Some((s, o))`.
+  /// Otherwise, `None` is returned.
+  Option<(T, U)> zip<U>(covariant Option<U> other) => switch ((this, other)) {
+        (Some(val: T a), Some(val: U b)) => Some((a, b)),
+        _ => None(),
+      };
+
+  /// Zips `this` and another `Option` with function `f`.
+  /// If self is `Some(s)` and other is `Some(o)`, this method returns `Some(f(s, o))`.
+  /// Otherwise, None is returned.
+  Option<R> zipWith<U, R>(Option<U> other, R Function(T t, U u) f) =>
+      switch ((this, other)) {
+        (Some(val: T a), Some(val: U b)) => Some(f(a, b)),
+        _ => None(),
+      };
+
   /// Converts from `Option<Option<T>>` to `Option<T>`. Only one level is flatten.
   /// Chain or compose to flatten more levels.
   ///
@@ -152,10 +166,11 @@ final class Some<T> extends Option<T> {
   T get val => _val;
 
   @override
-  bool operator ==(Object other) => (other is Some) && other._val == _val;
+  bool operator ==(Object other) =>
+      (other is Some<T>) && (other._val == _val || identical(other.val, _val));
 
   @override
-  int get hashCode => _val.hashCode;
+  int get hashCode => Object.hash(runtimeType, _val);
 
   @override
   String toString() => 'Some($_val)';
@@ -168,7 +183,7 @@ final class None<T> extends Option<T> {
   bool operator ==(Object other) => other is None;
 
   @override
-  int get hashCode => 0;
+  int get hashCode => Object.hash(runtimeType, 'None');
 
   @override
   String toString() => 'None';

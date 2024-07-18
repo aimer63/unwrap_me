@@ -1,8 +1,8 @@
 import 'package:unwrap_me/unwrap_me.dart';
 
 // Identity
-T identity<T>(T a) => a;
-T id<T>(T a) => a;
+T identity<T>(T t) => t;
+T id<T>(T t) => t;
 
 // Build a Result that returns an Ok.
 Result<T, E> ok<T, E>(T t) => Result<T, E>.ok(t);

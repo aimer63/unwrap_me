@@ -19,4 +19,9 @@ void main() {
         print(err);
     }
   });
+
+  final x = Some(3.2);
+  final Option<double> y = Option<double>.none();
+
+  print(y.runtimeType);
 }
