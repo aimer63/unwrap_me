@@ -19,7 +19,7 @@ Option<double> intToDouble(int i) {
 
 void main() {
   final x = fn();
-  print(x);
+  print('x = $x');
 
   final a = Some('10');
   // Orrible to read
