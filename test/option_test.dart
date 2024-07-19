@@ -44,16 +44,16 @@ void main() {
       expect(o.unwrap(), ());
     });
 
-    test('Option.some', () {
-      final o = Option.some(0);
+    test('Option.Some', () {
+      final o = Option.Some(0);
       const o1 = Some(0);
 
       expect(o.expect('zero'), 0);
       expect(o, o1);
     });
 
-    test('Option.none', () {
-      const o = Option.none();
+    test('Option.None', () {
+      const o = Option.None();
       const o1 = None();
       expect(() => o.expect('Something'), throwsA('Something'));
 
@@ -65,8 +65,8 @@ void main() {
       expect(Some(1) == Some(1), isTrue);
       expect(Some(1).hashCode == Some(1).hashCode, isTrue);
 
-      expect(Some(1) == Option.some(1), isTrue);
-      expect(Some(1).hashCode == Option.some(1).hashCode, isTrue);
+      expect(Some(1) == Option.Some(1), isTrue);
+      expect(Some(1).hashCode == Option.Some(1).hashCode, isTrue);
 
       expect(Some(1) == some(1), isTrue);
       expect(Some(1).hashCode == some(1).hashCode, isTrue);
@@ -74,8 +74,8 @@ void main() {
       expect(None() == None(), isTrue);
       expect(None().hashCode == None().hashCode, isTrue);
 
-      expect(None() == Option.none(), isTrue);
-      expect(None().hashCode == Option.none().hashCode, isTrue);
+      expect(None() == Option.None(), isTrue);
+      expect(None().hashCode == Option.None().hashCode, isTrue);
 
       expect(None() == none(), isTrue);
       expect(None().hashCode == none().hashCode, isTrue);
@@ -123,7 +123,7 @@ void main() {
         expect(s, Some('0'));
       });
       test('flatMap None', () {
-        const o = Option<int>.none();
+        const o = Option<int>.None();
         final s = o.flatMap((v) => Some(v.toString()));
         expect(s, None());
       });
@@ -160,11 +160,11 @@ void main() {
         expect(Some(1).xor(Some(2)), None());
       });
       test('and Some', () {
-        const o = Option<int>.some(0);
+        const o = Option<int>.Some(0);
         final o1 = o.and(Some("Hello"));
         expect(o1, Some("Hello"));
 
-        const o2 = Option<int>.some(0);
+        const o2 = Option<int>.Some(0);
         final o3 = o2.and(None());
         expect(o3, None());
       });
@@ -178,7 +178,7 @@ void main() {
         expect(o3, None());
       });
       test('andThen Some', () {
-        const o = Option<int>.some(0);
+        const o = Option<int>.Some(0);
         final o1 = o.andThen((v) => Some("Hello"));
         expect(o1, Some("Hello"));
       });
@@ -235,7 +235,7 @@ void main() {
     });
     group('Matches', () {
       test('fold Some', () {
-        const o = Option<int>.some(2);
+        const o = Option<int>.Some(2);
         final m = o.fold(
           (n) => n * n,
           () => 0,
@@ -243,13 +243,13 @@ void main() {
         expect(m, 4);
 
         final ms = switch (o) {
-          Some(val: final n) => n * n,
+          Some(value: final n) => n * n,
           None() => 0,
         };
         expect(ms, 4);
       });
       test('fold None', () {
-        const o = Option<int>.none();
+        const o = Option<int>.None();
         final m = o.fold(
           (n) => n * n,
           () => 0,
@@ -257,7 +257,7 @@ void main() {
         expect(m, 0);
 
         final ms = switch (o) {
-          Some(val: final n) => n * n,
+          Some(value: final n) => n * n,
           None() => 0,
         };
         expect(ms, 0);

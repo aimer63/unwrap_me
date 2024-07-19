@@ -33,16 +33,16 @@ void main() {
       expect(result.unwrapErr(), ());
     });
 
-    test('Result.ok', () {
-      final r = Result.ok(0);
+    test('Result.Ok', () {
+      final r = Result.Ok(0);
       const r1 = Ok(0);
 
       expect(r.unwrap(), 0);
       expect(r, r1);
     });
 
-    test('Result.err', () {
-      final r = Result.err(0);
+    test('Result.Err', () {
+      final r = Result.Err(0);
       const r1 = Err(0);
 
       expect(r.unwrapErr(), 0);
@@ -56,17 +56,17 @@ void main() {
       expect(Err(1) == Err(1), isTrue);
       expect(Err(1).hashCode == Err(1).hashCode, isTrue);
 
-      expect(Ok(1) == Result.ok(1), isTrue);
-      expect(Ok(1).hashCode == Result.ok(1).hashCode, isTrue);
+      expect(Ok(1) == Result.Ok(1), isTrue);
+      expect(Ok(1).hashCode == Result.Ok(1).hashCode, isTrue);
 
-      expect(Err(1) == Result.err(1), isTrue);
-      expect(Err(1).hashCode == Result.err(1).hashCode, isTrue);
+      expect(Err(1) == Result.Err(1), isTrue);
+      expect(Err(1).hashCode == Result.Err(1).hashCode, isTrue);
 
       expect(Ok(1) == ok(1), isTrue);
       expect(Ok(1).hashCode == ok(1).hashCode, isTrue);
 
-      expect(Err(1) == err(1), isTrue);
-      expect(Err(1).hashCode == err(1).hashCode, isTrue);
+      expect(Err(1) == error(1), isTrue);
+      expect(Err(1).hashCode == error(1).hashCode, isTrue);
     });
   });
 
@@ -83,6 +83,18 @@ void main() {
 
       expect(Ok<int, int>(2).mapErr(stringify), Ok(2));
       expect(Err<int, int>(13).mapErr(stringify), Err('Error code: 13.'));
+    });
+
+    test('mapOrElse', () {
+      final k = 21;
+
+      expect(Ok('foo').mapOrElse((e) => k * 2, (v) => v.length), 3);
+      expect(Err('bar').mapOrElse((e) => k * 2, (v) => v.length), 42);
+    });
+
+    test('mapOrElse', () {
+      expect(Ok('foo').mapOr(42, (v) => v.length), 3);
+      expect(Err('bar').mapOr(42, (v) => v.length), 42);
     });
 
     test('flatMap', () {
@@ -118,7 +130,40 @@ void main() {
       );
     });
     test('andThen', () {
-      // TODO:
+      Option<int> checkedDiv((int n, int d) couple) {
+        final (n, d) = couple;
+        return d == 0 ? None() : Some(n ~/ d);
+      }
+
+      Result<String, String> divThenToString((int n, int d) couple) {
+        return checkedDiv(couple)
+            .map((div) => div.toString())
+            .okOr('division by zero');
+      }
+
+      expect(
+        Ok((4, 2)).andThen(divThenToString),
+        Ok(2.toString()),
+      );
+      expect(
+        Ok((4, 0)).andThen(divThenToString),
+        Err('division by zero'),
+      );
+      expect(
+        Err<(int, int), String>('not a number').andThen(divThenToString),
+        Err('not a number'),
+      );
+    });
+    test('flatten', () {
+      expect(Ok(Ok('hello')).flatten(), Ok('hello'));
+      expect(Ok(Err(6)).flatten(), Err(6));
+      expect(Ok(Ok(Ok('hello'))).flatten(), Ok(Ok('hello')));
+      expect(
+        Ok(Ok(Ok('hello'))) //
+            .flatten()
+            .flatten(),
+        Ok('hello'),
+      );
     });
 
     test('fold', () {
@@ -148,6 +193,50 @@ void main() {
     test('unwrapOrElse', () {
       expect(Ok<int, String>(2).unwrapOrElse((e) => e.length), 2);
       expect(Err<int, String>('foo').unwrapOrElse((e) => e.length), 3);
+    });
+    test('ok', () {
+      expect(Ok(2).ok(), Some(2));
+      expect(Err('Nothing here').ok(), None());
+    });
+    test('err', () {
+      expect(Ok(2).err(), None());
+      expect(Err('Nothing here').err(), Some('Nothing here'));
+    });
+  });
+  group('Filters', () {
+    test('isOkAnd', () {
+      expect(Ok(2).isOkAnd((x) => x > 1), true);
+      expect(Ok(0).isOkAnd((x) => x > 1), false);
+      expect(Err(1).isOkAnd((x) => x > 1), false);
+    });
+    test('isErrAnd', () {
+      expect(Err(2).isErrAnd((x) => x > 1), true);
+      expect(Err(0).isErrAnd((x) => x > 1), false);
+      expect(Ok(1).isOkAnd((x) => x > 1), false);
+    });
+  });
+  group('Iterator', () {
+    test('iter', () {
+      final x = Ok(1);
+      for (int i in x.iter()) {
+        expect(i, 1);
+      }
+
+      x.iter().forEach((n) {
+        expect(n, 1);
+      });
+
+      final y = Err(1);
+      bool something = false;
+      for (int _ in y.iter()) {
+        something = true;
+      }
+      expect(something, false);
+
+      y.iter().forEach((n) {
+        something = true;
+      });
+      expect(something, false);
     });
   });
 }
