@@ -11,17 +11,12 @@ Result<int, String> parseInt(String number) {
 void main() {
   final List<String> list = ['1', '2x', '3', '4'];
 
-  list.forEach((number) {
-    switch (parseInt(number).map((i) => i * 2)) {
+  list.forEach((s) {
+    switch (parseInt(s).map((i) => i * 2)) {
       case Ok(val: final n):
         print(n);
       case Err(:String err):
         print(err);
     }
   });
-
-  final x = Some(3.2);
-  final Option<double> y = Option<double>.none();
-
-  print(y.runtimeType);
 }

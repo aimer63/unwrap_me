@@ -22,36 +22,40 @@ void main() {
   print(x);
 
   final a = Some('10');
+  // Orrible to read
   final Option<double> r = a.flatMap(
     (s) => stringToInt(s).flatMap(
       (i) => intToDouble(i),
     ),
   );
-  print(r);
+  print('r = $r');
 
-  final Option<double> r1 = a.flatMap(stringToInt).flatMap(intToDouble);
-  print(r1);
+  // A lot better, one day I will understand why the formatter puts two tabs!
+  final Option<double> r1 = a //
+      .flatMap(stringToInt)
+      .flatMap(intToDouble);
+  print('r1 = $r1');
 
   //final option = Option<Option<String>>.some(Some('String'));
   final option = Some(Some(Some(1)));
   final o = option //
       .flatMap(identity)
       .flatMap(identity);
-  print(option);
-  print(o);
+  print('option = $option');
+  print('o = $o');
   final o1 = option //
       .flatten()
       .flatten();
-  print(o1);
+  print('o1 = $o1');
 
   final opt = Some(1);
   final opt1 = opt.and(Some('Hello'));
-  print(opt1);
+  print('opt1 = $opt1');
 
   final opt2 = opt //
       .andThen((v) => Some(2.5));
-  print(opt2);
+  print('opt2 = $opt2');
 
   final u = Some("hello").andThen((v) => Some(1));
-  print(u);
+  print('u = $u');
 }
