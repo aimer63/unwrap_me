@@ -1,6 +1,4 @@
 import 'package:test/test.dart';
-import 'package:unwrap_me/src/functions.dart';
-import 'package:unwrap_me/src/option.dart';
 import 'package:unwrap_me/unwrap_me.dart';
 
 class Point {
@@ -37,7 +35,7 @@ void main() {
       expect(opt.unwrap(), ());
     });
 
-    test('Infer Unit type', () {
+    test('Infer Unit', () {
       Option<()> fn() {
         return const Some(());
       }

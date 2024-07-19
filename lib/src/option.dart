@@ -214,7 +214,7 @@ final class Some<T> extends Option<T> {
 
   @override
   bool operator ==(Object other) =>
-      (other is Some<T>) && (other._val == _val || identical(other.val, _val));
+      (other is Some<T>) && (other.val == _val || identical(other.val, _val));
 
   @override
   int get hashCode => Object.hash(runtimeType, _val);

@@ -1,4 +1,5 @@
 import 'package:test/test.dart';
+import 'package:unwrap_me/src/result.dart';
 
 import 'package:unwrap_me/unwrap_me.dart';
 
@@ -9,7 +10,7 @@ void main() {
       expect(result.unwrap(), ());
     });
 
-    test('Infer Ok<Unit> type', () {
+    test('Ok Infer Unit', () {
       Result<(), String> fn() {
         return const Ok(());
       }
@@ -23,7 +24,7 @@ void main() {
       expect(result.unwrapErr(), ());
     });
 
-    test('Infer Err<Unit> type', () {
+    test('Err Infer Unit', () {
       Result<String, ()> fn() {
         return const Err(());
       }
@@ -48,156 +49,105 @@ void main() {
       expect(r, r1);
     });
 
-    test('Equatable', () {
-      expect(const Ok(1) == const Ok(1), isTrue);
-      expect(const Ok(1).hashCode == const Ok(1).hashCode, isTrue);
+    test('Equality', () {
+      expect(Ok(1) == Ok(1), isTrue);
+      expect(Ok(1).hashCode == Ok(1).hashCode, isTrue);
 
-      expect(const Err(1) == const Err(1), isTrue);
-      expect(const Err(1).hashCode == const Err(1).hashCode, isTrue);
+      expect(Err(1) == Err(1), isTrue);
+      expect(Err(1).hashCode == Err(1).hashCode, isTrue);
 
-      expect(const Ok(1) == Result.ok(1), isTrue);
-      expect(const Ok(1).hashCode == Result.ok(1).hashCode, isTrue);
+      expect(Ok(1) == Result.ok(1), isTrue);
+      expect(Ok(1).hashCode == Result.ok(1).hashCode, isTrue);
 
-      expect(const Err(1) == Result.err(1), isTrue);
-      expect(const Err(1).hashCode == Result.err(1).hashCode, isTrue);
+      expect(Err(1) == Result.err(1), isTrue);
+      expect(Err(1).hashCode == Result.err(1).hashCode, isTrue);
 
-      expect(const Ok(1) == ok(1), isTrue);
-      expect(const Ok(1).hashCode == ok(1).hashCode, isTrue);
+      expect(Ok(1) == ok(1), isTrue);
+      expect(Ok(1).hashCode == ok(1).hashCode, isTrue);
 
-      expect(const Err(1) == err(1), isTrue);
-      expect(const Err(1).hashCode == err(1).hashCode, isTrue);
+      expect(Err(1) == err(1), isTrue);
+      expect(Err(1).hashCode == err(1).hashCode, isTrue);
     });
   });
 
   group('Mapping and Matching', () {
-    group('Map', () {
-      test('Ok', () {
-        const r = Ok(4);
-        final r1 = r.map((v) => '=' * v);
-
-        expect(r1.unwrap(), '====');
-      });
-
-      test('Err', () {
-        final r = err<String, int>(4);
-        final r1 = r.map((v) => 'change_it');
-
-        expect(() => r1.unwrap(), throwsA(4));
-        expect(r1.unwrapErr(), 4);
-      });
+    test('map', () {
+      expect(Ok(4).map((n) => n.toString()), Ok('4'));
+      expect(Err(4).map((n) => n.toString()), Err(4));
     });
 
-    group('MapErr', () {
-      test('Ok', () {
-        const r = Ok<int, int>(4);
-        final r1 = r.mapErr((e) => '=' * e);
+    test('mapErr', () {
+      String stringify(int x) {
+        return 'Error code: $x.';
+      }
 
-        expect(r1.unwrap(), 4);
-        expect(() => r1.unwrapErr(), throwsA(4));
-      });
-
-      test('Err', () {
-        const r = Err<String, int>(4);
-        final r1 = r.mapErr((e) => '=' * e);
-
-        expect(() => r1.unwrap(), throwsA('===='));
-        expect(r1.unwrapErr(), "====");
-      });
+      expect(Ok<int, int>(2).mapErr(stringify), Ok(2));
+      expect(Err<int, int>(13).mapErr(stringify), Err('Error code: 13.'));
     });
 
-    group('FlatMap', () {
-      test('Ok', () {
-        const r = Ok<int, int>(4);
-        final r1 = r.flatMap((v) => Ok('=' * v));
-
-        expect(r1.unwrap(), '====');
-      });
-
-      test('Err', () {
-        final r = err<String, int>(4);
-        final r1 = r.flatMap((_) => const Ok('===='));
-
-        expect(() => r1.unwrap(), throwsA(4));
-        expect(r1.unwrapErr(), 4);
-      });
+    test('flatMap', () {
+      expect(Ok(4).flatMap((n) => Ok(n.toString())), Ok('4'));
+      expect(Err(4).flatMap((n) => Ok(n.toString())), Err(4));
     });
 
-    group('FlatMapError', () {
-      test('Ok', () {
-        const r = Ok<int, String>(4);
-        final r1 = r.flatMapErr((v) => const Err('===='));
+    test('flatMapErr', () {
+      Result<int, String> stringify(int x) {
+        return Err('Error code: $x.');
+      }
 
-        expect(r1.unwrap(), 4);
-        expect(() => r1.unwrapErr(), throwsA(4));
-      });
-
-      test('Err', () {
-        const r = Err<int, int>(4);
-        final r1 = r.flatMapErr((e) => Err('=' * e));
-
-        expect(() => r1.unwrap(), throwsA("===="));
-        expect(r1.unwrapErr(), "====");
-      });
+      expect(Ok<int, int>(2).flatMapErr(stringify), Ok(2));
+      expect(Err<int, int>(13).flatMapErr(stringify), Err('Error code: 13.'));
     });
 
-    group('Match', () {
-      test('Ok', () {
-        const r = Ok<String, String>('====');
-        final r1 = r.match(
-          (o) => 13,
-          (e) => 42,
-        );
+    test('and', () {
+      expect(
+        Ok<int, String>(2).and(Err<String, String>('late error')),
+        Err('late error'),
+      );
+      expect(
+        Err<int, String>('early error').and(Ok<String, String>('foo')),
+        Err('early error'),
+      );
+      expect(
+        Err<int, String>('not a 2').and(Err<String, String>('late error')),
+        Err('not a 2'),
+      );
+      expect(
+        Ok<int, String>(2).and(Ok<String, String>('different result type')),
+        Ok('different result type'),
+      );
+    });
+    test('andThen', () {
+      // TODO:
+    });
 
-        expect(r1, 13);
-      });
-      test('Err', () {
-        const r = Err<String, String>('====');
-        final r1 = r.match(
-          (o) => 13,
-          (e) => 42,
-        );
-
-        expect(r1, 42);
-      });
+    test('fold', () {
+      final r = Ok<String, String>('OK').fold(
+        (o) => 13,
+        (e) => 42,
+      );
+      expect(r, 13);
+      final r1 = Err<String, String>('ERR').fold(
+        (o) => 13,
+        (e) => 42,
+      );
+      expect(r1, 42);
     });
   });
 
   group('Unwrappers', () {
-    group('unwrap', () {
-      test('Ok', () {
-        const Result<int, String> r = Ok(0);
-        expect(r.unwrap(), 0);
-      });
-      test('Err', () {
-        const Result<int, String> r = Err('Failure');
-        expect(r.unwrap, throwsA('Failure'));
-      });
+    test('unwrap', () {
+      expect(Ok(2).unwrap(), 2);
+      expect(() => Err('emergency failure').unwrap(),
+          throwsA('emergency failure'));
     });
-    group('unwrapOrElse', () {
-      test('Ok', () {
-        const r = Ok<int, String>(0);
-        final val = r.unwrapOrElse((e) => -1);
-        expect(val, 0);
-      });
-
-      test('Err', () {
-        const r = Err<String, int>(0);
-        final val = r.unwrapOrElse((e) => 'zero');
-        expect(val, 'zero');
-      });
+    test('unwrapOr', () {
+      expect(Ok<int, String>(9).unwrapOr(2), 9);
+      expect(Err<int, String>('error').unwrapOr(2), 2);
     });
-    group('unwrapOr', () {
-      test('Ok', () {
-        const r = Ok<int, String>(0);
-        final val = r.unwrapOr(-1);
-        expect(val, 0);
-      });
-
-      test('Err', () {
-        const r = Err<String, int>(0);
-        final val = r.unwrapOr('zero');
-        expect(val, 'zero');
-      });
+    test('unwrapOrElse', () {
+      expect(Ok<int, String>(2).unwrapOrElse((e) => e.length), 2);
+      expect(Err<int, String>('foo').unwrapOrElse((e) => e.length), 3);
     });
   });
 }

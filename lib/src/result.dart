@@ -6,7 +6,8 @@ sealed class Result<T, E> {
   const factory Result.ok(T t) = Ok<T, E>;
   const factory Result.err(E e) = Err<T, E>;
 
-  bool isOk() => switch (this) {
+  bool isOk() => //
+      switch (this) {
         Ok() => true,
         Err() => false,
       };
@@ -15,51 +16,52 @@ sealed class Result<T, E> {
 
   /// Returns the contained `Ok` value, if it's `Err` throws the contained `err`
   /// value.
-  T unwrap() => switch (this) {
+  T unwrap() => //
+      switch (this) {
         Ok(:T val) => val,
         Err(:E err) => throw err as Object,
       };
 
   /// Returns the contained `Ok` value or a provided default if it is `Err`.
-  T unwrapOr(T d) => switch (this) {
+  T unwrapOr(T d) => //
+      switch (this) {
         Ok(:T val) => val,
         Err() => d,
       };
 
   /// Returns the contained `Ok` value or computes it from `orElse`.
-  T unwrapOrElse(T Function(E e) orElse) => switch (this) {
+  T unwrapOrElse(T Function(E e) orElse) => //
+      switch (this) {
         Ok(:T val) => val,
         Err(:E err) => orElse(err),
       };
 
   /// Returns the contained `Err` value, if it's `ok` throws the contained `ok`
   /// value.
-  E unwrapErr() => switch (this) {
+  E unwrapErr() => //
+      switch (this) {
         Ok(:T val) => throw val as Object,
         Err(:E err) => err,
       };
 
   /// Returns the contained `Ok` value, if it's `Err` throws `msg`.
-  T expect(String msg) => switch (this) {
+  T expect(String msg) => //
+      switch (this) {
         Ok(:T val) => val,
         Err() => throw msg,
       };
 
   /// Returns the contained `Err` value, if it's `Ok` throws `msg`.
-  E expectErr(String msg) => switch (this) {
+  E expectErr(String msg) => //
+      switch (this) {
         Ok() => throw msg,
         Err(:E err) => err,
       };
 
   /// Returns the result of onOk for the contained value if it's `Ok`,
   /// otherwise the result of `onErr` if it's an `Err`
-  U match<U>(U Function(T t) onOk, U Function(E e) onErr) => switch (this) {
-        Ok(:T val) => onOk(val),
-        Err(:E err) => onErr(err),
-      };
-
-  /// Same as `match`.
-  U fold<U>(U Function(T t) onOk, U Function(E e) onErr) => switch (this) {
+  U fold<U>(U Function(T t) onOk, U Function(E e) onErr) => //
+      switch (this) {
         Ok(:T val) => onOk(val),
         Err(:E err) => onErr(err),
       };
@@ -80,7 +82,8 @@ sealed class Result<T, E> {
   /// });
   /// ```
   ///
-  Result<U, E> map<U>(U Function(T t) fn) => switch (this) {
+  Result<U, E> map<U>(U Function(T t) fn) => //
+      switch (this) {
         Ok(:T val) => Ok(fn(val)),
         Err(:E err) => Err(err),
       };
@@ -89,7 +92,8 @@ sealed class Result<T, E> {
   /// contained `Err` value, leaving an `Ok` value untouched.
   /// This function can be used to pass through a successful result
   /// while handling an error.
-  Result<T, F> mapErr<F>(F Function(E e) fn) => switch (this) {
+  Result<T, F> mapErr<F>(F Function(E e) fn) => //
+      switch (this) {
         Ok(:T val) => Ok(val),
         Err(:E err) => Err(fn(err)),
       };
@@ -109,6 +113,22 @@ sealed class Result<T, E> {
         Ok(:T val) => Ok(val),
         Err(:E err) => fn(err),
       };
+
+  /// Returns `res` if the result is `Ok`, otherwise returns the `Err` value of `this`.
+  ///
+  Result<U, E> and<U>(covariant Result<U, E> res) => //
+      switch (this) {
+        Ok() => res,
+        Err(:E err) => Err(err),
+      };
+
+  /// Calls `op` if the result is `Ok`, otherwise returns the `Err` value of `this4`.
+  ///
+  Result<U, E> andThen<U>(covariant Result<U, E> Function(T t) op) => //
+      switch (this) {
+        Ok(:T val) => op(val),
+        Err(:E err) => Err(err),
+      };
 }
 
 final class Ok<T, E> extends Result<T, E> {
@@ -118,12 +138,11 @@ final class Ok<T, E> extends Result<T, E> {
   T get val => _val;
 
   @override
-  bool operator ==(Object other) {
-    return other is Ok && other._val == _val;
-  }
+  bool operator ==(Object other) =>
+      (other is Ok<T, E>) && (other.val == _val || identical(other.val, _val));
 
   @override
-  int get hashCode => _val.hashCode;
+  int get hashCode => Object.hash(runtimeType, _val);
 
   @override
   String toString() => 'Ok($_val)';
@@ -136,12 +155,12 @@ final class Err<T, E> extends Result<T, E> {
   E get err => _err;
 
   @override
-  bool operator ==(Object other) {
-    return other is Err && other._err == _err;
-  }
+  bool operator ==(Object other) =>
+      (other is Err<T, E>) && (other.err == _err || identical(other.err, _err));
 
   @override
-  int get hashCode => _err.hashCode;
+  int get hashCode => Object.hash(runtimeType, _err);
+
   @override
   String toString() => 'Err($_err)';
 }
