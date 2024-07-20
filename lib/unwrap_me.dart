@@ -1,4 +1,4 @@
-library option_result;
+library unwrap_me;
 
 export 'src/result.dart';
 export 'src/functions.dart';
