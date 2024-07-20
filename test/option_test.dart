@@ -1,4 +1,5 @@
 import 'package:test/test.dart';
+import 'package:unwrap_me/src/option.dart';
 import 'package:unwrap_me/unwrap_me.dart';
 
 class Point {
@@ -33,6 +34,8 @@ void main() {
     test('Some<Unit>', () {
       const opt = Some(());
       expect(opt.unwrap(), ());
+      expect(opt.isSome(), true);
+      expect(opt.toString(), 'Some(())');
     });
 
     test('Infer Unit', () {
@@ -60,6 +63,8 @@ void main() {
       // This fails if `const o1 = None;
       // FIXME: Understand why.
       expect(o, o1);
+      expect(o1.isNone(), true);
+      expect(o1.toString(), 'None');
     });
     test('Equality', () {
       expect(Some(1) == Some(1), isTrue);
@@ -82,6 +87,22 @@ void main() {
 
       expect(None() == None<String>(), isTrue);
       expect(None<int>() == None<String>(), isTrue);
+    });
+  });
+
+  group('Unwrappers', () {
+    test('unwrap', () {
+      expect(Some('air').unwrap(), 'air');
+      expect(() => None().unwrap(), throwsA('None'));
+    });
+    test('unwrapOr', () {
+      expect(Some('car').unwrapOr('bike'), 'car');
+      expect(None().unwrapOr('bike'), 'bike');
+    });
+    test('unwrapOrElse', () {
+      final k = 10;
+      expect(Some(4).unwrapOrElse(() => 2 * k), 4);
+      expect(None().unwrapOrElse(() => 2 * k), 20);
     });
   });
 
@@ -139,6 +160,16 @@ void main() {
               .flatten()
               .flatten()
               .flatten(),
+          Some(Some(Some(1))),
+        );
+        expect(
+          Option.flatten(
+            Option.flatten(
+              Option.flatten(
+                Some(Some(Some(Some(Some(Some(1)))))),
+              ),
+            ),
+          ),
           Some(Some(Some(1))),
         );
       });
@@ -205,6 +236,7 @@ void main() {
         expect(x.zipWith(y, Point.new), Some(Point(3.0, 2.0)));
         expect(x.zipWith(y, Point.make), Some(Point(3.0, 2.0)));
         expect(x.zipWith(y, makePoint), Some(Point(3.0, 2.0)));
+        expect(None<double>().zipWith(y, makePoint), None());
       });
       test('unzip', () {
         expect(Some((1, 'hi')).unzip(), (Some(1), Some('hi')));
@@ -214,7 +246,13 @@ void main() {
         final Result<Option<int>, String> x = Ok(Some(5));
         final Option<Result<int, String>> y = Some(Ok(5));
 
+        final Result<Option<int>, String> x1 = Err('error');
+        final Option<Result<int, String>> y1 = Some(Err('error'));
+
         expect(x, y.transpose());
+        expect(x1, y1.transpose());
+        expect(None<Result<int, String>>().transpose(),
+            Ok<Option<int>, String>(None()));
       });
       test('inspect', () {
         bool inspect = false;

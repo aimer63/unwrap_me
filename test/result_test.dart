@@ -8,8 +8,9 @@ void main() {
     test('Ok<Unit>', () {
       const result = Ok(());
       expect(result.unwrap(), ());
+      expect(result.toString(), 'Ok(())');
+      expect(result.isOk(), true);
     });
-
     test('Ok Infer Unit', () {
       Result<(), String> fn() {
         return const Ok(());
@@ -18,12 +19,12 @@ void main() {
       final result = fn();
       expect(result.unwrap(), ());
     });
-
     test('Err<Unit>', () {
       const result = Err(());
       expect(result.unwrapErr(), ());
+      expect(result.toString(), 'Err(())');
+      expect(result.isErr(), true);
     });
-
     test('Err Infer Unit', () {
       Result<String, ()> fn() {
         return const Err(());
@@ -178,6 +179,36 @@ void main() {
       );
       expect(r1, 42);
     });
+    test('inspect', () {
+      bool inspect = false;
+      final x = Ok(0).inspect((n) {
+        inspect = true;
+      });
+      expect(inspect, true);
+      expect(x, Ok(0));
+
+      inspect = false;
+      final y = Err('error').inspect((n) {
+        inspect = true;
+      });
+      expect(inspect, false);
+      expect(y, Err('error'));
+    });
+    test('inspectErr', () {
+      bool inspect = false;
+      final x = Err(0).inspectErr((n) {
+        inspect = true;
+      });
+      expect(inspect, true);
+      expect(x, Err(0));
+
+      inspect = false;
+      final y = Ok('hello').inspectErr((n) {
+        inspect = true;
+      });
+      expect(inspect, false);
+      expect(y, Ok('hello'));
+    });
   });
 
   group('Unwrappers', () {
@@ -194,6 +225,18 @@ void main() {
       expect(Ok<int, String>(2).unwrapOrElse((e) => e.length), 2);
       expect(Err<int, String>('foo').unwrapOrElse((e) => e.length), 3);
     });
+    test('expect', () {
+      final x = Err('emergency failure');
+      expect(() => x.expect('expecting something'),
+          throwsA('expecting something'));
+    });
+    test('expectErr', () {
+      final x = Ok(10);
+      expect(() => x.expectErr('expecting an error'),
+          throwsA('expecting an error'));
+      expect(Err(10).expectErr('expecting a number'), 10);
+    });
+
     test('ok', () {
       expect(Ok(2).ok(), Some(2));
       expect(Err('Nothing here').ok(), None());
