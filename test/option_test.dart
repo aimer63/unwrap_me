@@ -250,7 +250,9 @@ void main() {
         final Option<Result<int, String>> y1 = Some(Err('error'));
 
         expect(x, y.transpose());
+        expect(x.transpose(), y);
         expect(x1, y1.transpose());
+        expect(x1.transpose(), y1);
         expect(None<Result<int, String>>().transpose(),
             Ok<Option<int>, String>(None()));
       });

@@ -206,6 +206,22 @@ sealed class Result<T, E> {
   Result<U, E> andThen<U>(covariant Result<U, E> Function(T t) op) => //
       flatMap(op);
 
+  /// Returns `res` if the result is `Err`, otherwise returns the `Ok` value of `this`.
+  ///
+  Result<T, F> or<F>(covariant Result<T, F> res) => //
+      switch (this) {
+        Ok(:T value) => Ok(value),
+        Err() => res,
+      };
+
+  /// Calls `op` if the result is `Err`, otherwise returns the `Ok` value of `this`.
+  ///
+  Result<T, F> orElse<F>(covariant Result<T, F> Function(E e) op) => //
+      switch (this) {
+        Ok(:T value) => Ok(value),
+        Err(:E error) => op(error),
+      };
+
   /// Returns a mutable iterator over the possibly contained value.
   ///
   /// The iterator yields one value if the result is `Result::Ok`,
@@ -263,4 +279,18 @@ extension FlattenRes<T, E> on Result<Result<T, E>, E> {
   ///
   Result<T, E> flatten() => //
       flatMap(identity);
+}
+
+extension TransposeRes<T, E> on Result<Option<T>, E> {
+  /// Transposes a `Result` of an `Option` into an `Option` of a `Result`.
+  ///
+  /// `Ok(None)` will be mapped to `None`.
+  /// `Ok(Some(_))` and `Err(_)` will be mapped to `Some(Ok(_))` and `Some(Err(_))`.
+  ///
+  Option<Result<T, E>> transpose() => //
+      switch (this) {
+        Ok(value: Some(:T value)) => Some(Ok(value)),
+        Ok(value: None()) => None(),
+        Err(:E error) => Some(Err(error))
+      };
 }

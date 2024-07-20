@@ -1,7 +1,7 @@
 import 'package:test/test.dart';
-import 'package:unwrap_me/src/result.dart';
-
 import 'package:unwrap_me/unwrap_me.dart';
+
+class SomeErr {}
 
 void main() {
   group('Creation', () {
@@ -155,6 +155,22 @@ void main() {
         Err('not a number'),
       );
     });
+    test('or', () {
+      expect(Ok(2).or(Err('late error')), Ok(2));
+      expect(Err<int, String>('early error').or(Ok(2)), Ok(2));
+      expect(
+          Err<int, String>('not a 2').or(Err('late error')), Err('late error'));
+      expect(Ok(2).or(Ok(100)), Ok(2));
+    });
+    test('orElse', () {
+      Result<int, int> sq(int x) => Ok(x * x);
+      Result<int, int> error(int x) => Err(x);
+      expect(Ok<int, int>(2).orElse(sq).orElse(sq), Ok(2));
+      expect(Ok<int, int>(2).orElse(error).orElse(sq), Ok(2));
+      expect(Err<int, int>(3).orElse(sq).orElse(error), Ok(9));
+      expect(Err<int, int>(3).orElse(error).orElse(error), Err(3));
+    });
+
     test('flatten', () {
       expect(Ok(Ok('hello')).flatten(), Ok('hello'));
       expect(Ok(Err(6)).flatten(), Err(6));
@@ -165,6 +181,21 @@ void main() {
             .flatten(),
         Ok('hello'),
       );
+    });
+
+    test('transpose', () {
+      final Result<Option<int>, SomeErr> x = Ok(Some(5));
+      final Option<Result<int, SomeErr>> y = Some(Ok(5));
+
+      final Result<Option<int>, String> x1 = Err('error');
+      final Option<Result<int, String>> y1 = Some(Err('error'));
+
+      expect(x.transpose(), y);
+      expect(y.transpose(), x);
+
+      expect(x1.transpose(), y1);
+      expect(y1.transpose(), x1);
+      expect(y1.transpose(), id(x1));
     });
 
     test('fold', () {
