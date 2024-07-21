@@ -1,27 +1,28 @@
 import 'package:unwrap_me/unwrap_me.dart';
 import 'package:unwrap_me/unwrap_me.dart' as unwrap_me;
+import './errors.dart';
 
-class Error {
-  const Error(this.message);
-  final String message;
+// class Error {
+//   const Error(this.message);
+//   final String message;
 
-  @override
-  String toString() {
-    return 'Error: $message';
-  }
-}
+//   @override
+//   String toString() {
+//     return 'Error: $message';
+//   }
+// }
 
-//typedef Result<T> = unwrap_me.Result<T, Error>;
+typedef Result<T> = unwrap_me.Result<T, Error>;
 
-Result<int, Error> parseInt(String number) {
+Result<int> parseInt(String number) {
   try {
     return Ok(int.parse(number));
   } catch (e) {
-    return Err(Error(e.toString()));
+    return Err(ParseIntError(e.toString()));
   }
 }
 
-Result<int, Error> multiply(String first, String second) {
+Result<int> multiply(String first, String second) {
   return switch (parseInt(first)) {
     Ok(value: final first) => switch (parseInt(second)) {
         Ok(value: final second) => Ok(first * second),
@@ -31,14 +32,14 @@ Result<int, Error> multiply(String first, String second) {
   };
 }
 
-Result<int, Error> multiply2(String first, String second) {
+Result<int> multiply2(String first, String second) {
   return parseInt(first) //
       .andThen((n) => //
           parseInt(second) //
               .andThen((m) => Ok(n * m)));
 }
 
-Result<int, Error> multiply3(String first, String second) {
+Result<int> multiply3(String first, String second) {
   int firstNumber;
   int secondNumber;
   switch (parseInt(first)) {
@@ -65,19 +66,39 @@ Option<T> getFirst<T>(List<T> list) {
   }
 }
 
-Option<Result<int, Error>> doubleFirst(List<String> list) {
+Option<Result<int>> doubleFirst(List<String> list) {
   return getFirst(list) //
       .map((first) => parseInt(first).map((n) => n * 2));
 }
 
-Result<Option<int>, Error> doubleFirst2(List<String> list) {
+Result<Option<int>> doubleFirst2(List<String> list) {
   final opt = getFirst(list) //
       .map((first) => parseInt(first).map((n) => n * 2));
 
   return opt.mapOr(Ok(None()), (r) => r.map((x) => Some(x)));
 }
 
-void printResult(Result<int, Error> result) {
+List<Option<int>> ignoreFailed(List<String> strings) {
+  return strings //
+      .map((s) => parseInt(s).ok())
+      .where((n) => n.isSome())
+      .toList();
+}
+
+void collectErrors() {
+  var strings = ["42", "tofu", "93", "999x", "18"];
+  var errors = <Error>[];
+  var numbers = strings
+      .map((s) => parseInt(s))
+      .map((r) => r.inspectErr((e) => errors.add(e)))
+      .where((r) => r.isOk())
+      .toList();
+
+  print("Numbers: $numbers");
+  print("Errors: $errors");
+}
+
+void printResult(Result<int> result) {
   switch (result) {
     case Ok(:int value):
       print('Number = $value');
@@ -143,4 +164,16 @@ void main() {
 
   print('\n===== doubleFirst2 string =====');
   print('The first doubled is: ${doubleFirst2(strings)}');
+
+  print('\n===== ignoreFailed numbers =====');
+  print('The List is: ${ignoreFailed(numbers)}');
+
+  print('\n===== ignoreFailed string =====');
+  print('The List is: ${ignoreFailed(strings)}');
+
+  print('\n===== ignoreFailed empty =====');
+  print('The List is: ${ignoreFailed(empty)}');
+
+  print('\n===== collectErrors =====');
+  collectErrors();
 }
