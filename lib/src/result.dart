@@ -10,6 +10,13 @@ sealed class Result<T, E> {
   // ignore: non_constant_identifier_names
   const factory Result.Err(E e) = Err<T, E>;
 
+  /// Usefult to convert a nullable `value` into a `Result`
+  factory Result.fromNullable(T? value, E error) => //
+      switch (value) {
+        null => Err(error),
+        _ => Ok(value),
+      };
+
   bool isOk() => //
       switch (this) {
         Ok() => true,

@@ -8,6 +8,13 @@ sealed class Option<T> {
   // ignore: non_constant_identifier_names
   const factory Option.None() = None<T>;
 
+  /// Usefult to convert a nullable `value` into an `Option`
+  factory Option.fromNullable(T? value) => //
+      switch (value) {
+        null => None(),
+        _ => Some(value),
+      };
+
   bool isSome() => switch (this) {
         Some() => true,
         None() => false,
