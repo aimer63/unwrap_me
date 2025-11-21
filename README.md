@@ -2,8 +2,6 @@
 
 **unwrap_me** Rust's `Option` and `Result` types directly into Dart.
 
-## The Origin Story
-
 > "I decided to write this because I was forced to learn Rust and Dart together."
 
 While juggling the learning curves of both languages, I missed the Rust's enums while

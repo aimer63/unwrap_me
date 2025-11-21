@@ -21,42 +21,30 @@ void main() {
   final x = fn();
   print('x = $x');
 
-  final a = Some('10');
+  final a = Some('42');
 
-  // The formatter gets crazy with chaining.
-  final Option<double> r = a //
-      .flatMap(
-    (s) => stringToInt(s) //
-        .flatMap(
-      (i) => intToDouble(i),
-    ),
+  final Option<double> r = a.flatMap(
+    (s) => stringToInt(s).flatMap((i) => intToDouble(i)),
   );
   print('r = $r');
 
-  final Option<double> r1 = a //
-      .flatMap(stringToInt)
-      .flatMap(intToDouble);
+  final Option<double> r1 = a.flatMap(stringToInt).flatMap(intToDouble);
   print('r1 = $r1');
 
   //final option = Option<Option<String>>.some(Some('String'));
   final option = Some(Some(Some(1)));
-  final o = option //
-      .flatMap(identity)
-      .flatMap(identity);
+  final o = option.flatMap(identity).flatMap(identity);
   print('option = $option');
   print('o = $o');
 
-  final o1 = option //
-      .flatten()
-      .flatten();
+  final o1 = option.flatten().flatten();
   print('o1 = $o1');
 
   final opt = Some(1);
   final opt1 = opt.and(Some('Hello'));
   print('opt1 = $opt1');
 
-  final opt2 = opt //
-      .andThen((v) => Some(2.5));
+  final opt2 = opt.andThen((v) => Some(2.5));
   print('opt2 = $opt2');
 
   final u = Some("hello").andThen((v) => Some(1));
