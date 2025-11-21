@@ -1,39 +1,96 @@
-<!-- 
-This README describes the package. If you publish this package to pub.dev,
-this README's contents appear on the landing page for your package.
+# unwrap_me
 
-For information about how to write a good package README, see the guide for
-[writing package pages](https://dart.dev/guides/libraries/writing-package-pages). 
+**unwrap_me** Rust's `Option` and `Result` types directly into Dart.
 
-For general information about developing packages, see the Dart guide for
-[creating packages](https://dart.dev/guides/libraries/create-library-packages)
-and the Flutter guide for
-[developing packages and plugins](https://flutter.dev/developing-packages). 
--->
+## The Origin Story
 
-TODO: Put a short description of the package here that helps potential users
-know whether this package might be useful for them.
+> "I decided to write this because I was forced to learn Rust and Dart together."
+
+While juggling the learning curves of both languages, I missed the Rust's enums while
+writing Dart. Instead of ........ "Null Safety" I tryied to port one the best parts
+of Rust's standard library to Dart.
 
 ## Features
 
-TODO: List what your package can do. Maybe include images, gifs, or videos.
+* **Complete `Option<T>`:** Explicit handling of value presence/absence, replacing implicit nulls.
+* **Robust `Result<T, E>`:** Typed error handling that treats errors as values, not exceptions.
+* **Functional Combinators:** Chainable methods like `map`, `flatMap`, `zip`, `filter`, and `fold`.
+* **Dart 3 Pattern Matching:** Built using `sealed` classes, enabling exhaustive `switch` expressions.
+* **Advanced Transformations:** Includes `transpose` (flip `Option<Result>` to `Result<Option>`) and `flatten`.
+* **Global Helpers:** Shorthand functions like `some()`, `none()`, `ok()`, and `error()` for cleaner syntax.
 
-## Getting started
+## 📦 Installation
 
-TODO: List prerequisites and provide or point to information on how to
-start using the package.
+Add this to your `pubspec.yaml`:
 
-## Usage
-
-TODO: Include short and useful examples for package users. Add longer examples
-to `/example` folder. 
-
-```dart
-const like = 'sample';
+```yaml
+dependencies:
+  unwrap_me: ^0.1.0
 ```
 
-## Additional information
+## Real-World Usage
 
-TODO: Tell users more about the package: where to find more information, how to 
-contribute to the package, how to file issues, what response they can expect 
-from the package authors, and more.
+### Error Handling with Pattern Matching
+
+```dart
+sealed class Error {}
+
+class UserNotFoundError extends Error {
+  final String username;
+  UserNotFoundError(this.username);
+}
+
+class ParseIntError extends Error {
+  final String message;
+  ParseIntError(this.message);
+}
+
+void printError(Error e) {
+  switch (e) {
+    case UserNotFoundError(:String username):
+      print('User not found: $username');
+    case ParseIntError(message: final msg):
+      print('Parse error: $msg');
+  }
+  print('Error object: $e');
+}
+
+void main() {
+  final error1 = UserNotFoundError('Pino');
+  final error2 = ParseIntError('Invalid integer format');
+  printError(error1);
+  printError(error2);
+}
+```
+
+### Chaining Option Operations
+
+```dart
+final Option<double> result = Some('42')
+    .flatMap((s) => int.tryParse(s) != null ? Some(int.parse(s)) : None())
+    .flatMap((i) => Some(i.toDouble()));
+print(result); // Some(42.0)
+```
+
+### Collecting Results and Errors
+
+```dart
+final strings = ["42", "tofu", "93", "999x", "18"];
+final errors = <Error>[];
+final numbers = strings
+    .map((s) => int.tryParse(s) != null
+        ? Ok(int.parse(s))
+        : Err(ParseIntError('Invalid: $s')))
+    .map((r) => r.inspectErr((e) => errors.add(e)))
+    .where((r) => r.isOk())
+    .toList();
+
+print("Numbers: $numbers");
+print("Errors: $errors");
+```
+
+> **See more complete examples in the [`example/`](example/) directory.**
+
+## License
+
+MIT

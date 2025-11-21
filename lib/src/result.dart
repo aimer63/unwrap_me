@@ -1,5 +1,9 @@
-//import 'package:option_result/option_result.dart';
-
+//
+// Copyright (c) 2025-Present Imerio Dall'Olio
+// All rights reserved.
+//
+// Licensed under MIT Licence.
+//
 import 'package:unwrap_me/unwrap_me.dart';
 
 sealed class Result<T, E> {
@@ -10,92 +14,92 @@ sealed class Result<T, E> {
   // ignore: non_constant_identifier_names
   const factory Result.Err(E e) = Err<T, E>;
 
-  /// Usefult to convert a nullable `value` into a `Result`
+  /// Converts a nullable [value] into a [Result].
+  /// Returns [Err] if [value] is null, otherwise [Ok(value)].
   factory Result.fromNullable(T? value, E error) => //
       switch (value) {
         null => Err(error),
         _ => Ok(value),
       };
 
+  /// Returns `true` if this [Result] is [Ok], otherwise `false`.
   bool isOk() => //
       switch (this) {
         Ok() => true,
         Err() => false,
       };
 
+  /// Returns `true` if this [Result] is [Err], otherwise `false`.
   bool isErr() => !isOk();
 
-  /// Returns `true` if the result is `Ok` and the value inside of it matches
-  /// a predicate.
-  ///
+  /// Returns `true` if the result is [Ok] and the value inside of it matches
+  /// a predicate [f].
   bool isOkAnd(bool Function(T t) f) => //
       switch (this) {
         Ok(:T value) => f(value),
         Err() => false,
       };
 
-  /// Returns `true` if the result is `Err` and the value inside of it matches
-  /// a predicate.
-  ///
+  /// Returns `true` if the result is [Err] and the value inside of it matches
+  /// a predicate [f].
   bool isErrAnd(bool Function(E e) f) => //
       switch (this) {
         Ok() => false,
         Err(:E error) => f(error),
       };
 
-  /// Returns the contained `Ok` value, if it's `Err` throws the contained `error`
-  /// value.
+  /// Returns the contained [Ok] value, if it's [Err] throws the contained
+  /// error value.
   T unwrap() => //
       switch (this) {
         Ok(:T value) => value,
         Err(:E error) => throw error as Object,
       };
 
-  /// Returns the contained `Ok` value or a provided default if it is `Err`.
+  /// Returns the contained [Ok] value or a provided default [d] if it is [Err].
   T unwrapOr(T d) => //
       switch (this) {
         Ok(:T value) => value,
         Err() => d,
       };
 
-  /// Returns the contained `Ok` value or computes it from `orElse`.
+  /// Returns the contained [Ok] value or computes it from [orElse] if [Err].
   T unwrapOrElse(T Function(E e) orElse) => //
       switch (this) {
         Ok(:T value) => value,
         Err(:E error) => orElse(error),
       };
 
-  /// Returns the contained `Err` value, if it's `ok` throws the contained `ok`
-  /// value.
+  /// Returns the contained [Err] value, if it's [Ok] throws the contained
+  /// ok value.
   E unwrapErr() => //
       switch (this) {
         Ok(:T value) => throw value as Object,
         Err(:E error) => error,
       };
 
-  /// Returns the contained `Ok` value, if it's `Err` throws `msg`.
+  /// Returns the contained [Ok] value, if it's [Err] throws [msg].
   T expect(String msg) => //
       switch (this) {
         Ok(:T value) => value,
         Err() => throw msg,
       };
 
-  /// Returns the contained `Err` value, if it's `Ok` throws `msg`.
+  /// Returns the contained [Err] value, if it's [Ok] throws [msg].
   E expectErr(String msg) => //
       switch (this) {
         Ok() => throw msg,
         Err(:E error) => error,
       };
 
-  /// Converts from `Result<T, E>` to [`Option<E>`] discarding the error, if any.
-  ///
+  /// Converts from [Result<T, E>] to [Option<T>] discarding the error, if any.
   Option<T> ok() => //
       switch (this) {
         Ok(:T value) => Some(value),
         Err() => None()
       };
 
-  /// Converts from `Result<T, E>` to `Option<E>`discarding the success value,
+  /// Converts from [Result<T, E>] to [Option<E>] discarding the success value,
   /// if any.
   Option<E> err() => //
       switch (this) {
@@ -103,7 +107,7 @@ sealed class Result<T, E> {
         Err(:E error) => Some(error),
       };
 
-  /// Calls a function with a reference to the contained value if `Ok`.
+  /// Calls a function [f] with a reference to the contained value if [Ok].
   ///
   /// Returns the original result.
   Result<T, E> inspect(void Function(T t) f) {
@@ -113,7 +117,7 @@ sealed class Result<T, E> {
     return this;
   }
 
-  /// Calls a function with a reference to the contained value if `Err`.
+  /// Calls a function [f] with a reference to the contained value if [Err].
   ///
   /// Returns the original result.
   Result<T, E> inspectErr(void Function(E t) f) {
@@ -123,16 +127,16 @@ sealed class Result<T, E> {
     return this;
   }
 
-  /// Returns the result of onOk for the contained value if it's `Ok`,
-  /// otherwise the result of `onErr` if it's an `Err`
+  /// Returns the result of [onOk] for the contained value if it's [Ok],
+  /// otherwise the result of [onErr] if it's an [Err].
   U fold<U>(U Function(T t) onOk, U Function(E e) onErr) => //
       switch (this) {
         Ok(:T value) => onOk(value),
         Err(:E error) => onErr(error),
       };
 
-  /// Maps a `Result<T, E>` to `Result<U, E>` by applying a function to a
-  /// contained `Ok` value, leaving an `Err` value untouched.
+  /// Maps a [Result<T, E>] to [Result<U, E>] by applying a function [fn] to a
+  /// contained [Ok] value, leaving an [Err] value untouched.
   /// This function can be used to compose the results of two functions.
   /// ```dart
   /// final List<String> list = ['1', '2x', '3', '4'];
@@ -153,8 +157,8 @@ sealed class Result<T, E> {
         Err(:E error) => Err(error),
       };
 
-  /// Maps a `Result<T, E>` to `Result<T, F>` by applying a function to a
-  /// contained `Err` value, leaving an `Ok` value untouched.
+  /// Maps a [Result<T, E>] to [Result<T, F>] by applying a function [fn] to a
+  /// contained [Err] value, leaving an [Ok] value untouched.
   /// This function can be used to pass through a successful result
   /// while handling an error.
   Result<T, F> mapErr<F>(F Function(E e) fn) => //
@@ -163,76 +167,69 @@ sealed class Result<T, E> {
         Err(:E error) => Err(fn(error)),
       };
 
-  /// Returns the provided default (if `Err`), or
-  /// applies a function to the contained value (if `Ok`).
-  ///
+  /// Returns the provided default [d] (if [Err]), or
+  /// applies a function [f] to the contained value (if [Ok]).
   U mapOr<U>(U d, U Function(T t) f) => //
       switch (this) {
         Ok(:T value) => f(value),
         Err() => d,
       };
 
-  /// Maps a `Result<T, E>` to `U` by applying fallback function `orElse` to
-  /// a contained `Err` value, or function `f` to a contained `Ok` value.
-  ///
+  /// Maps a [Result<T, E>] to [U] by applying fallback function [orElse] to
+  /// a contained [Err] value, or function [f] to a contained [Ok] value.
   /// This function can be used to unpack a successful result
   /// while handling an error.
-  ///
   U mapOrElse<U>(U Function(E e) orElse, U Function(T t) f) => //
       switch (this) {
         Ok(:T value) => f(value),
         Err(:E error) => orElse(error),
       };
 
-  /// Calls `op` if the result is `Ok`, otherwise returns the `Err` value of `this`.
-  /// Same as andThen
+  /// Calls [op] if the result is [Ok], otherwise returns the [Err] value of [this].
+  /// Same as [andThen].
   Result<U, E> flatMap<U>(covariant Result<U, E> Function(T t) op) =>
       switch (this) {
         Ok(:T value) => op(value),
         Err(:E error) => Err(error),
       };
 
-  // Returns a new Result mapping any Err value using the given transformation,
-  // the transformation itself produces the new Result
+  /// Returns a new [Result] mapping any [Err] value using the given transformation [fn],
+  /// the transformation itself produces the new [Result].
   Result<T, U> flatMapErr<U>(covariant Result<T, U> Function(E e) fn) =>
       switch (this) {
         Ok(:T value) => Ok(value),
         Err(:E error) => fn(error),
       };
 
-  /// Returns `res` if the result is `Ok`, otherwise returns the `Err` value of `this`.
-  ///
+  /// Returns [res] if the result is [Ok], otherwise returns the [Err] value of [this].
   Result<U, E> and<U>(covariant Result<U, E> res) => //
       switch (this) {
         Ok() => res,
         Err(:E error) => Err(error),
       };
 
-  /// Calls `op` if the result is `Ok`, otherwise returns the `Err` value of `this4`.
-  /// Same as flatMap
+  /// Calls [op] if the result is [Ok], otherwise returns the [Err] value of [this].
+  /// Same as [flatMap].
   Result<U, E> andThen<U>(covariant Result<U, E> Function(T t) op) => //
       flatMap(op);
 
-  /// Returns `res` if the result is `Err`, otherwise returns the `Ok` value of `this`.
-  ///
+  /// Returns [res] if the result is [Err], otherwise returns the [Ok] value of [this].
   Result<T, F> or<F>(covariant Result<T, F> res) => //
       switch (this) {
         Ok(:T value) => Ok(value),
         Err() => res,
       };
 
-  /// Calls `op` if the result is `Err`, otherwise returns the `Ok` value of `this`.
-  ///
+  /// Calls [op] if the result is [Err], otherwise returns the [Ok] value of [this].
   Result<T, F> orElse<F>(covariant Result<T, F> Function(E e) op) => //
       switch (this) {
         Ok(:T value) => Ok(value),
         Err(:E error) => op(error),
       };
 
-  /// Returns a mutable iterator over the possibly contained value.
+  /// Returns an iterator over the possibly contained value.
   ///
-  /// The iterator yields one value if the result is `Result::Ok`,
-  /// otherwise none.
+  /// The iterator yields one value if the result is [Ok], otherwise none.
   Iterable<T> iter() sync* {
     switch (this) {
       case Ok(:T value):
@@ -280,10 +277,11 @@ final class Err<T, E> extends Result<T, E> {
 }
 
 extension FlattenRes<T, E> on Result<Result<T, E>, E> {
-  /// Converts from `Result<Result<T, E>, E>` to `Result<T, E>`
-  /// Only one level is flatten.
-  /// Chain or compose to flatten more levels.
+  /// Converts from `Result<Result<T, E>, E>` to `Result<T, E>`.
+  /// Only one level is flattened. Chain or compose to flatten more levels.
   ///
+  /// If this is [Ok] containing another [Result], returns the inner [Result].
+  /// If this is [Err], returns [Err].
   Result<T, E> flatten() => //
       flatMap(identity);
 }
@@ -291,9 +289,8 @@ extension FlattenRes<T, E> on Result<Result<T, E>, E> {
 extension TransposeRes<T, E> on Result<Option<T>, E> {
   /// Transposes a `Result` of an `Option` into an `Option` of a `Result`.
   ///
-  /// `Ok(None)` will be mapped to `None`.
-  /// `Ok(Some(_))` and `Err(_)` will be mapped to `Some(Ok(_))` and `Some(Err(_))`.
-  ///
+  /// - `Ok(None)` will be mapped to `None`.
+  /// - `Ok(Some(_))` and `Err(_)` will be mapped to `Some(Ok(_))` and `Some(Err(_))`.
   Option<Result<T, E>> transpose() => //
       switch (this) {
         Ok(value: Some(:T value)) => Some(Ok(value)),

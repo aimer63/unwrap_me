@@ -1,10 +1,10 @@
 name: unwrap_me
-description: A starting point for Dart libraries or applications.
+description: Rust like Option and Result.
 version: 0.1.0
 # repository: https://github.com/aimer63/unwrap_me
 
 environment:
-  sdk: ^3.4.4
+  sdk: ^3.10.0
 
 # Add regular dependencies here.
 dependencies:

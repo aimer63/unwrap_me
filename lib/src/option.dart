@@ -1,3 +1,9 @@
+//
+// Copyright (c) 2025-Present Imerio Dall'Olio
+// All rights reserved.
+//
+// Licensed under MIT Licence.
+//
 import 'package:unwrap_me/unwrap_me.dart';
 
 sealed class Option<T> {
@@ -8,18 +14,28 @@ sealed class Option<T> {
   // ignore: non_constant_identifier_names
   const factory Option.None() = None<T>;
 
-  /// Usefult to convert a nullable `value` into an `Option`
+  /// Converts a nullable [value] into an [Option].
+  /// Returns [None] if [value] is null, otherwise [Some(value)].
   factory Option.fromNullable(T? value) => //
       switch (value) {
         null => None(),
         _ => Some(value),
       };
 
+  /// Converts this [Option] to a nullable value.
+  /// Returns the contained value if [Some], otherwise null.
+  T? toNullable() => switch (this) {
+        Some(:T value) => value,
+        None() => null,
+      };
+
+  /// Returns `true` if this [Option] is [Some], otherwise `false`.
   bool isSome() => switch (this) {
         Some() => true,
         None() => false,
       };
 
+  /// Returns `true` if this [Option] is [None], otherwise `false`.
   bool isNone() => !isSome();
 
   /// Returns `true` if the option is a `Some` and the value inside of it
@@ -30,69 +46,72 @@ sealed class Option<T> {
         None() => false,
       };
 
-  /// Returns the value if any, throws if `None`
+  /// Returns the contained value if [Some], otherwise throws `'None'`.
+  /// The stack trace will show the caller location.
   T unwrap() => //
       switch (this) {
         Some(:T value) => value,
         None() => throw 'None',
       };
 
-  /// Returns the contained `Some` value or the provided one if `None`
+  /// Returns the contained value if [Some], otherwise returns [d].
   T unwrapOr(T d) => //
       switch (this) {
         Some(:T value) => value,
         None() => d,
       };
 
-  /// Returns the contained `Some` value or computes it from `orElse` in `None`.
+  /// Returns the contained value if [Some], otherwise computes it from [orElse].
   T unwrapOrElse(T Function() orElse) => //
       switch (this) {
         Some(:T value) => value,
         None() => orElse(),
       };
 
-  /// Returns the value if any, throws the `String` if `None`
+  /// Returns the contained value if [Some], otherwise throws [msg].
   T expect(String msg) => //
       switch (this) {
         Some(:T value) => value,
         None() => throw msg,
       };
 
-  /// Maps an `Option<T>` to `Option<U>` by applying a function to a contained
-  /// value (if `Some`) or returns `None` (if `None`).
+  /// Maps an [Option<T>] to [Option<U>] by applying [f] to the contained value
+  /// if [Some], otherwise returns [None].
   Option<U> map<U>(U Function(T t) f) => //
       switch (this) {
         Some(:T value) => Some(f(value)),
         None() => None(),
       };
 
-  /// Returns the provided default (if `None`), or applies a function
-  /// to the contained value (if any) and returns `U=f(t)`.
+  /// Returns [d] if [None], otherwise applies [f] to the contained value and
+  /// returns the result of `f(value)` if [Some].
   U mapOr<U>(U d, U Function(T t) f) => //
       switch (this) {
         Some(:T value) => f(value),
         None() => d,
       };
 
-  /// Returns a value computed by the default function (if `None`), or applies
-  /// a different function to the contained value (if any).
+  /// Returns a value computed by [orElse] if [None], otherwise applies [f]
+  /// to the contained value and returns the result of `f(value)` if [Some].
   U mapOrElse<U>(U Function() orElse, U Function(T t) f) => //
       switch (this) {
         Some(:T value) => f(value),
         None() => orElse(),
       };
 
-  /// Returns a `onNone` (if `None`), or applies `onSome` to the contained value
-  /// (if any).
+  /// Returns the result `onNone` (if `None`), returns the result `onSome`
+  /// applied to the contained value (if `Some`).
   U fold<U>(U Function(T t) onSome, U Function() onNone) => //
       switch (this) {
         Some(:T value) => onSome(value),
         None() => onNone(),
       };
 
-  /// Computes a new `Option<U>` applying f if `Some`, `None` otherwise.
-  /// Useful to chain fallible operations, if something goes wrong
-  /// you end up with a `None`
+  /// Returns a new [Option] by applying [f] to the contained value if [Some],
+  /// otherwise returns [None]. Useful for chaining fallible operations.
+  ///
+  /// If this is [Some], returns the result of `f(value)`.
+  /// If this is [None], returns [None].
   ///
   /// ```dart
   /// final a = Some('10'); // final a = Some('10=')
@@ -111,17 +130,20 @@ sealed class Option<T> {
         None() => None(),
       };
 
-  /// Returns the option if it contains a value, otherwise returns `b`.
+  /// Returns this [Option] if it contains a value, otherwise returns [b].
   ///
+  /// If this is [Some], returns itself.
+  /// If this is [None], returns [b].
   Option<T> or(covariant Option<T> b) => //
       switch (this) {
         Some() => this,
         None() => b,
       };
 
-  /// Returns `Some` if exactly one of these 'this' and `b` are `Some`,
-  /// otherwise returns `None`.
+  /// Returns [Some] if exactly one of this and [b] is [Some], otherwise [None].
   ///
+  /// If only one is [Some], returns that [Some].
+  /// If both are [Some] or both are [None], returns [None].
   Option<T> xor(covariant Option<T> b) => //
       switch ((this, b)) {
         (Some(), None()) => this,
@@ -129,54 +151,63 @@ sealed class Option<T> {
         _ => None(),
       };
 
-  /// Same as for 'or'.
+  /// Returns this [Option] if it contains a value, otherwise calls [orElse]
+  /// and returns its result.
+  ///
+  /// If this is [Some], returns itself.
+  /// If this is [None], returns the result of [orElse].
   Option<T> orElse(covariant Option<T> Function() orElse) => //
       switch (this) {
         Some() => this,
         None() => orElse(),
       };
 
-  /// Returns None if the option is None, otherwise returns u.
+  /// Returns [None] if this is [None], otherwise returns [u].
+  ///
+  /// If this is [Some], returns [u].
+  /// If this is [None], returns [None].
   Option<U> and<U>(covariant Option<U> u) => //
       switch (this) {
         Some() => u,
         None() => None(),
       };
 
-  /// Returns None if the option is `None`, otherwise calls `then` with the
-  /// wrapped value and returns the result.
-  /// Same as `flatMap`.
+  /// Returns [None] if this is [None], otherwise calls [then] with the
+  /// contained value and returns its result.
+  /// Same as [flatMap].
   Option<U> andThen<U>(covariant Option<U> Function(T t) then) => //
       flatMap(then);
 
-  /// Transforms the `Option<T>` into a `Result<T, E>`, mapping `Some(v)` to
-  /// `Ok(v)` and `None` to `Err(error)`.
+  /// Transforms the [Option] into a [Result], mapping [Some(v)] to [Ok(v)]
+  /// and [None] to [Err(error)].
   Result<T, E> okOr<E>(E error) => //
       switch (this) {
         Some(:T value) => Ok(value),
         None() => Err(error),
       };
 
-  /// Transforms the `Option<T>` into a `Result<T, E>`, mapping `Some(v)` to
-  /// `Ok(v)` and `None` to `Err(error())`.
+  /// Transforms the [Option] into a [Result], mapping [Some(v)] to [Ok(v)]
+  /// and [None] to [Err(error())].
   Result<T, E> okOrElse<E>(E Function() error) => //
       switch (this) {
         Some(:T value) => Ok(value),
         None() => Err(error()),
       };
 
-  /// Zips `this` with another `Option`.
-  /// If `this` is `Some(s)` and `other` is `Some(o)`, this method returns `Some((s, o))`.
-  /// Otherwise, `None` is returned.
+  /// Zips this [Option] with another [Option].
+  ///
+  /// If both are [Some], returns [Some] containing a tuple of both values.
+  /// Otherwise, returns [None].
   Option<(T, U)> zip<U>(covariant Option<U> other) => //
       switch ((this, other)) {
         (Some(value: T a), Some(value: U b)) => Some((a, b)),
         _ => None(),
       };
 
-  /// Zips `this` and another `Option` with function `f`.
-  /// If self is `Some(s)` and other is `Some(o)`, this method returns `Some(f(s, o))`.
-  /// Otherwise, None is returned.
+  /// Zips this [Option] and another [Option] with function [f].
+  ///
+  /// If both are [Some], returns [Some] containing the result of [f].
+  /// Otherwise, returns [None].
   Option<R> zipWith<U, R>(
           covariant Option<U> other, R Function(T t, U u) f) => //
       switch ((this, other)) {
@@ -185,9 +216,8 @@ sealed class Option<T> {
       };
 
   /// Returns an iterator over the possibly contained value.
-  /// The iterator yields one value if the result is `Some`,
-  /// otherwise none.
-
+  ///
+  /// The iterator yields one value if this is [Some], otherwise none.
   Iterable<T> iter() sync* {
     switch (this) {
       case Some(:T value):
@@ -197,22 +227,19 @@ sealed class Option<T> {
     }
   }
 
-  /// Returns `None` if the option is `None`, otherwise calls `predicate`
-  /// with the wrapped value and returns:
+  /// Returns [None] if this is [None], otherwise calls [predicate]
+  /// with the contained value and returns:
   ///
-  /// - `Some(t)` if `predicate` returns `true` (where `t` is the wrapped
-  ///   value), and
-  /// - `None` if `predicate` returns `false`.
-  ///
+  /// - [Some(t)] if [predicate] returns `true`
+  /// - [None] if [predicate] returns `false`
   Option<T> filter(bool Function(T t) predicate) => //
       switch (this) {
         Some(:T value) => predicate(value) ? this : None(),
         None() => this
       };
 
-  /// Calls a function with argument the contained value if `Some`.
-  /// Returns the original Options
-  ///
+  /// Calls [f] with the contained value if [Some].
+  /// Returns the original [Option].
   Option<T> inspect(void Function(T t) f) {
     if (this case Some(:T value)) {
       f(value);
@@ -220,8 +247,8 @@ sealed class Option<T> {
     return this;
   }
 
-  /// Converts from `Option<Option<T>>` to `Option<T>`. Only one level is flatten.
-  /// Chain or compose to flatten more levels.
+  /// Converts from [Option<Option<T>>] to [Option<T>]. Only one level is
+  /// flattened. Chain or compose to flatten more levels.
   ///
   /// ```dart
   /// final option = Some(Some(Some(1)));
@@ -273,8 +300,11 @@ final class None<T> extends Option<T> {
 }
 
 extension FlattenOpt<T> on Option<Option<T>> {
-  /// Converts from `Option<Option<T>>` to `Option<T>`. Only one level is flatten.
-  /// Chain or compose to flatten more levels.
+  /// Converts from [Option<Option<T>>] to [Option<T>]. Only one level is
+  /// flattened. Chain or compose to flatten more levels.
+  ///
+  /// If this is [Some(Some(value))], returns [Some(value)].
+  /// If this is [Some(None())] or [None()], returns [None].
   ///
   /// ```dart
   /// final option = Some(Some(Some(1)));
@@ -294,7 +324,6 @@ extension UnzipIt<A, B> on Option<(A, B)> {
   ///
   /// If `this` is `Some((a, b))` this method returns `(Some(a), Some(b))`.
   /// Otherwise, `(None, None)` is returned.
-  ///
   (Option<A>, Option<B>) unzip() => //
       switch (this) {
         Some(value: (A a, B b)) => (Some(a), Some(b)),
@@ -303,10 +332,10 @@ extension UnzipIt<A, B> on Option<(A, B)> {
 }
 
 extension TransposeIt<T, E> on Option<Result<T, E>> {
-  /// Transposes an `Option` of a `Result` into a `Result` of an `Option`.
-  /// None will be mapped to `Ok(None)`. `Some(Ok(_))` and Some(Err(_)) will
-  /// be mapped to `Ok(Some(_))` and `Err(_)`.
+  /// Transposes an [Option] of a [Result] into a [Result] of an [Option].
   ///
+  /// [None] will be mapped to [Ok(None)]. [Some(Ok(_))] and [Some(Err(_))]
+  /// will be mapped to [Ok(Some(_))] and [Err(_)].
   Result<Option<T>, E> transpose() => //
       switch (this) {
         Some(value: Ok(:T value)) => Ok(Some(value)),

@@ -22,17 +22,19 @@ class ParseIntError extends Error {
   }
 }
 
-void fn(Error e) {
+void printError(Error e) {
   switch (e) {
     case UserNotFoundError(:String username):
-      print(username);
+      print('User not found: $username');
     case ParseIntError(message: final msg):
-      print(msg);
+      print('Parse error: $msg');
   }
-  print(e);
+  print('Error object: $e');
 }
 
 void main() {
-  fn(UserNotFoundError('Pino'));
+  final error1 = UserNotFoundError('Pino');
+  final error2 = ParseIntError('Invalid integer format');
+  printError(error1);
+  printError(error2);
 }
-// A function which 

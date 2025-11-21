@@ -22,15 +22,17 @@ void main() {
   print('x = $x');
 
   final a = Some('10');
-  // Orrible to read
-  final Option<double> r = a.flatMap(
-    (s) => stringToInt(s).flatMap(
+
+  // The formatter gets crazy with chaining.
+  final Option<double> r = a //
+      .flatMap(
+    (s) => stringToInt(s) //
+        .flatMap(
       (i) => intToDouble(i),
     ),
   );
   print('r = $r');
 
-  // A lot better, one day I will understand why the formatter puts two tabs!
   final Option<double> r1 = a //
       .flatMap(stringToInt)
       .flatMap(intToDouble);
@@ -43,6 +45,7 @@ void main() {
       .flatMap(identity);
   print('option = $option');
   print('o = $o');
+
   final o1 = option //
       .flatten()
       .flatten();

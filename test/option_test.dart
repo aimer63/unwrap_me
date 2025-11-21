@@ -1,33 +1,5 @@
 import 'package:test/test.dart';
-import 'package:unwrap_me/src/option.dart';
 import 'package:unwrap_me/unwrap_me.dart';
-
-class Point {
-  final double x;
-  final double y;
-  const Point(this.x, this.y);
-
-  factory Point.make(double x, double y) {
-    return Point(x, y);
-  }
-  @override
-  operator ==(Object other) => switch (other) {
-        Point(x: double otherX, y: double otherY) => x == otherX && y == otherY,
-        _ => false
-      };
-
-  @override
-  int get hashCode => Object.hash(x, y);
-
-  @override
-  String toString() {
-    return '($x, $y)';
-  }
-}
-
-Point makePoint(double x, double y) {
-  return Point(x, y);
-}
 
 void main() {
   group('Creational', () {
@@ -103,6 +75,10 @@ void main() {
       final k = 10;
       expect(Some(4).unwrapOrElse(() => 2 * k), 4);
       expect(None().unwrapOrElse(() => 2 * k), 20);
+    });
+    test('toNullable', () {
+      expect(None().toNullable(), null);
+      expect(Some(42).toNullable(), 42);
     });
   });
 
@@ -233,10 +209,10 @@ void main() {
       test('zipWith', () {
         final x = Some(3.0);
         final y = Some(2.0);
-        expect(x.zipWith(y, Point.new), Some(Point(3.0, 2.0)));
-        expect(x.zipWith(y, Point.make), Some(Point(3.0, 2.0)));
-        expect(x.zipWith(y, makePoint), Some(Point(3.0, 2.0)));
-        expect(None<double>().zipWith(y, makePoint), None());
+        expect(x.zipWith(y, (a, b) => (a, b)), Some((3.0, 2.0)));
+        expect(
+            x.zipWith(y, (a, b) => a * b + a / b), Some(3.0 * 2.0 + 3.0 / 2.0));
+        expect(None<double>().zipWith(y, (a, b) => (a, b)), None());
       });
       test('unzip', () {
         expect(Some((1, 'hi')).unzip(), (Some(1), Some('hi')));

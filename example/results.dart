@@ -2,16 +2,6 @@ import 'package:unwrap_me/unwrap_me.dart';
 import 'package:unwrap_me/unwrap_me.dart' as unwrap_me;
 import './errors.dart';
 
-// class Error {
-//   const Error(this.message);
-//   final String message;
-
-//   @override
-//   String toString() {
-//     return 'Error: $message';
-//   }
-// }
-
 typedef Result<T> = unwrap_me.Result<T, Error>;
 
 Result<int> parseInt(String number) {
