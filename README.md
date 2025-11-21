@@ -5,7 +5,7 @@
 > "I decided to write this because I was forced to learn Rust and Dart together."
 
 While juggling the learning curves of both languages, I missed the Rust's enums while
-writing Dart. Instead of struggling whith "Null Safety" I tryied to port one the best parts
+writing Dart. Instead of struggling with "Null Safety" I tryied to port one the best parts
 of Rust's standard library to Dart.
 
 ## Features
