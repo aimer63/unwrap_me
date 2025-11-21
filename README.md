@@ -7,19 +7,19 @@
 > "I decided to write this because I was forced to learn Rust and Dart together."
 
 While juggling the learning curves of both languages, I missed the Rust's enums while
-writing Dart. Instead of ........ "Null Safety" I tryied to port one the best parts
+writing Dart. Instead of struggling whith "Null Safety" I tryied to port one the best parts
 of Rust's standard library to Dart.
 
 ## Features
 
-* **Complete `Option<T>`:** Explicit handling of value presence/absence, replacing implicit nulls.
-* **Robust `Result<T, E>`:** Typed error handling that treats errors as values, not exceptions.
+* **`Option<T>`:** Explicit handling of value presence/absence, replacing implicit nulls.
+* **`Result<T, E>`:** Typed error handling that treats errors as values, not exceptions.
 * **Functional Combinators:** Chainable methods like `map`, `flatMap`, `zip`, `filter`, and `fold`.
 * **Dart 3 Pattern Matching:** Built using `sealed` classes, enabling exhaustive `switch` expressions.
-* **Advanced Transformations:** Includes `transpose` (flip `Option<Result>` to `Result<Option>`) and `flatten`.
-* **Global Helpers:** Shorthand functions like `some()`, `none()`, `ok()`, and `error()` for cleaner syntax.
+* **Transformations:** Includes `transpose` (flip `Option<Result>` to `Result<Option>`) and `flatten`.
+* **Helpers:** Shorthand functions like `some()`, `none()`, `ok()`, and `error()` for cleaner syntax.
 
-## 📦 Installation
+## Installation
 
 Add this to your `pubspec.yaml`:
 
@@ -28,7 +28,7 @@ dependencies:
   unwrap_me: ^0.1.0
 ```
 
-## Real-World Usage
+## Usage
 
 ### Error Handling with Pattern Matching
 
